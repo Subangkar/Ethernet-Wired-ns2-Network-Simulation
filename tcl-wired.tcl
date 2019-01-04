@@ -28,9 +28,7 @@ set num_row [expr $num_node/$num_col]
 set cbr_type CBR
 set cbr_size            16 ;	#[lindex $argv 2]; #4,8,16,32,64
 set cbr_rate            0.256Mb;#11.0Mb
-set grid_x_dim		[expr $Tx_range];# 500 ;	#[lindex $argv 1]
-set grid_y_dim  	[expr $Tx_range];#500 ;	#[lindex $argv 1]
-set time_duration    25 ;	#[lindex $argv 5] ;#50
+set time_duration    15 ;	#[lindex $argv 5] ;#50
 set start_time          1
 set extra_time          5
 set flow_start_gap   0.1
@@ -38,26 +36,12 @@ set parallel_start_gap 0.1
 set cross_start_gap 0.0
 set random_start_gap 0.2
 
-set num_parallel_flow [expr ($num_row*$num_col)];# along column
-# set num_parallel_flow 0;# along column
-# set num_parallel_flow [expr (int($num_row/2))*$num_col];# along column
-if {$num_parallel_flow > [expr $num_flow/2]} {
-	set num_parallel_flow [expr $num_flow/2]
-}
-set num_cross_flow [expr $num_flow-$num_parallel_flow] ;#along row
-# set num_cross_flow 0;#along row
-set num_random_flow 0
-if {$num_cross_flow > [expr (int($num_col/2))*$num_row]} {
-	# puts $num_cross_flow
-	set num_random_flow  [expr $num_cross_flow - (int($num_col/2))*$num_row]
-	# set num_random_flow  [expr $num_cross_flow-$num_row]
-	# set num_cross_flow $num_row
-	set num_cross_flow [expr (int($num_col/2))*$num_row]
-}
-# set num_random_flow $num_flow
+set num_parallel_flow 0;# along column
+set num_cross_flow 0;#along row
+set num_random_flow $num_flow
 
 
-puts "Simulating With: #Nodes=$num_node #Flow=$num_flow PKT_rate=$cbr_pckt_rate #TX_Area=$grid_x_dim x $grid_y_dim"
+puts "Simulating With: #Nodes=$num_node #Flow=$num_flow PKT_rate=$cbr_pckt_rate "
 # set motion_start_gap    0.05
 
 
@@ -98,43 +82,6 @@ proc create_CBR_App { } {
 	return $cbr_
 }
 
-# 0->15 1->16
-# 0th row -> last row
-# 1st row -> (last-1) row
-proc paralell_Node_No {i} {
-	global num_row num_col
-
-	set curRow [expr int($i/$num_col)]
-	# puts $curRow
-	return [expr ($i%$num_col)+(($num_row-1-$curRow)*$num_col)]
-}
-
-
-proc getNodeNoForCross {i} {
-	global num_row num_col
-
-	set nodeRow [expr ($i/(int($num_col/2)))]
-	set curColm [expr int($i%($num_col/2))]
-	# puts $nodeRow
-	# puts $curColm
-	set i [expr $curColm+($nodeRow*$num_col)]
-	return $i	
-}
-
-# 0->4 1->3 5->9
-# 0th row -> last row
-# 1st row -> (last-1) row
-proc cross_Node_No {i} {
-	global num_row num_col
-
-	set nodeRow [expr ($i/(int($num_col)))]
-	set curColm [expr int($i%$num_col)]
-	return [expr (($nodeRow+1)*$num_col-1)-$curColm]
-}
-
-set v 5
-set v [cross_Node_No $v]
-# puts $v
 # ==============================================================================
 
 
@@ -162,7 +109,7 @@ set topo_file   [open $directory$topo_file_name "w"]
 
 
 set topo	[new Topography]
-# $topo load_flatgrid $grid_x_dim $grid_y_dim
+
 $ns_ rtproto DV 
 
 # create the object God
@@ -178,12 +125,10 @@ create-god $val(nn)
 puts "start node creation"
 for {set i 0} {$i < $num_node} {incr i} {
 	set node_($i) [$ns_ node]
-	# $node_($i) random-motion 0
 }
 
 
-#creating edges in a grid-like way
-
+# Create Edges in a grid-like way
 puts "Creating Edges between the nodes..."
 
 
@@ -196,11 +141,11 @@ for {set i 0} {$i < $num_node} {incr i} {
 
 
     if {$nodeColm != [expr $num_col-1]} {
-        $ns_ duplex-link $node_($i) $node_($rightNode) 5Mb 10ms DropTail
+        $ns_ duplex-link $node_($i) $node_($rightNode) 2Mb 10ms DropTail
     }
 
     if {$downNode < [expr $num_node-1]} {
-        $ns_ duplex-link $node_($i) $node_($downNode) 5Mb 10ms DropTail
+        $ns_ duplex-link $node_($i) $node_($downNode) 2Mb 10ms DropTail
     }
 }
 
@@ -217,141 +162,60 @@ puts "node creation complete"
 # ==============================================================================
 
 # create agent for each flow
-# for {set i 0} {$i < $num_flow} {incr i} {
-# 	set udp_($i) [new $source_type]
-# 	set null_($i) [new $sink_type]
-# 	$udp_($i) set fid_ $i
-# 	if { [expr $i%2] == 0} {
-# 		$ns_ color $i Red
-# 	} else {
-# 		$ns_ color $i Blue
-# 	}
-# }
+for {set i 0} {$i < $num_flow} {incr i} {
+	set udp_($i) [new $source_type]
+	set null_($i) [new $sink_type]
+	$udp_($i) set fid_ $i
+	if { [expr $i%2] == 0} {
+		$ns_ color $i Red
+	} else {
+		$ns_ color $i Blue
+	}
+}
 
-# set flowNum 0
-# # # ======================= PARALLEL FLOW =======================
-# # along column
-# # set num_parallel_flow 0
-# puts "Parallel flow: $num_parallel_flow"
-# set k 0
-# #CHNG
-# for {set i 0} {$i < $num_parallel_flow } {incr i} {
-# 	set udp_node $i
-# 	set null_node [paralell_Node_No $i];#CHNG
-# 	# set null_node [expr $i+(($num_col)*($num_row-1))];#CHNG
-# 	$ns_ attach-agent $node_($udp_node) $udp_($k)
-#   	$ns_ attach-agent $node_($null_node) $null_($k)
-# 	puts -nonewline $topo_file "PARALLEL: Src: $udp_node Dest: $null_node\n"
-# 	incr k
-# }
-
-# set k 0
-# #CHNG
-# for {set i 0} {$i < $num_parallel_flow } {incr i} {
-#      $ns_ connect $udp_($k) $null_($k)
-# 	 incr k
-# }
-
-# set k 0
-# #CHNG
-# for {set i 0} {$i < $num_parallel_flow } {incr i} {
-# 	set cbr_($k) [create_CBR_App]
-# 	$cbr_($k) attach-agent $udp_($k)
-# 	incr k
-# }
-
-
-# set k 0
-# #CHNG
-# for {set i 0} {$i < $num_parallel_flow } {incr i} {
-#      $ns_ at [expr $start_time+$i*$parallel_start_gap] "$cbr_($k) start"
-# 	 incr k
-# }
-
-# ####################################CROSS FLOW
-# # along row 1st -> last
-# # set num_cross_flow 0
-# puts "Cros flow: $num_cross_flow"
-
-# #CHNG
-# set k $num_parallel_flow
-# #CHNG
-# for {set i 0} {$i < $num_cross_flow } {incr i} {
-# 	set udp_node [getNodeNoForCross $i];#CHNG
-# 	set null_node [cross_Node_No $udp_node];#CHNG
-# 	# set null_node [expr ($i+1)*$num_col-1];#CHNG
-# 	$ns_ attach-agent $node_($udp_node) $udp_($k)
-#   	$ns_ attach-agent $node_($null_node) $null_($k)
-# 	puts -nonewline $topo_file "CROSS: Src: $udp_node Dest: $null_node\n"
-# 	incr k
-# } 
-
-# #CHNG
-# set k $num_parallel_flow
-# #CHNG
-# for {set i 0} {$i < $num_cross_flow } {incr i} {
-# 	$ns_ connect $udp_($k) $null_($k)
-# 	incr k
-# }
-# #CHNG
-# set k $num_parallel_flow
-# #CHNG
-# for {set i 0} {$i < $num_cross_flow } {incr i} {
-# 	set cbr_($k) [create_CBR_App]
-# 	$cbr_($k) attach-agent $udp_($k)
-# 	incr k
-# }
-
-# #CHNG
-# set k $num_parallel_flow
-# #CHNG
-# for {set i 0} {$i < $num_cross_flow } {incr i} {
-# 	$ns_ at [expr $start_time+$i*$cross_start_gap] "$cbr_($k) start"
-# 	incr k
-# }
 
 # # ======================= Random flow =========================
-# # set num_random_flow 0
-# puts "Random flow: $num_random_flow"
+# set num_random_flow 0
+puts "Random flow: $num_random_flow"
 
-# set k [expr $num_parallel_flow+$num_cross_flow]
-# # assign agent to node
-# for {set i 0} {$i < $num_random_flow} {incr i} {
-# 	set source_number [expr int($num_node*rand())]
-# 	set sink_number [expr int($num_node*rand())]
-# 	while {$sink_number==$source_number} {
-# 		set sink_number [expr int($num_node*rand())]
-# 	}
+set k [expr $num_parallel_flow+$num_cross_flow]
+# assign agent to node
+for {set i 0} {$i < $num_random_flow} {incr i} {
+	set source_number [expr int($num_node*rand())]
+	set sink_number [expr int($num_node*rand())]
+	while {$sink_number==$source_number} {
+		set sink_number [expr int($num_node*rand())]
+	}
 
-# 	$ns_ attach-agent $node_($source_number) $udp_($k)
-#   	$ns_ attach-agent $node_($sink_number) $null_($k)
+	$ns_ attach-agent $node_($source_number) $udp_($k)
+  	$ns_ attach-agent $node_($sink_number) $null_($k)
 
-# 	puts -nonewline $topo_file "RANDOM:  Src: $source_number Dest: $sink_number\n"
-# 	incr k
-# }
-
-
-# set k [expr $num_parallel_flow+$num_cross_flow]
-# # Creating packet generator (CBR) for source node
-# for {set i 0} {$i < $num_random_flow } {incr i} {
-# 	set cbr_($i) [create_CBR_App]
-# 	$cbr_($i) attach-agent $udp_($k)
-# 	incr k
-# }
+	puts -nonewline $topo_file "RANDOM:  Src: $source_number Dest: $sink_number\n"
+	incr k
+}
 
 
-# set k [expr $num_parallel_flow+$num_cross_flow]
-# for {set i 0} {$i < $num_random_flow } {incr i} {
-# 	$ns_ at $start_time "$cbr_($k) start"
-# 	incr k
-# }
+set k [expr $num_parallel_flow+$num_cross_flow]
+# Creating packet generator (CBR) for source node
+for {set i 0} {$i < $num_random_flow } {incr i} {
+	set cbr_($i) [create_CBR_App]
+	$cbr_($i) attach-agent $udp_($k)
+	incr k
+}
 
-# set k [expr $num_parallel_flow+$num_cross_flow]
-# # Connecting udp_node & null_node
-# for {set i 0} {$i < $num_random_flow } {incr i} {
-#      $ns_ connect $udp_($k) $null_($k)
-# 	incr k
-# }
+
+set k [expr $num_parallel_flow+$num_cross_flow]
+for {set i 0} {$i < $num_random_flow } {incr i} {
+	$ns_ at $start_time "$cbr_($k) start"
+	incr k
+}
+
+set k [expr $num_parallel_flow+$num_cross_flow]
+# Connecting udp_node & null_node
+for {set i 0} {$i < $num_random_flow } {incr i} {
+     $ns_ connect $udp_($k) $null_($k)
+	incr k
+}
 # =============================================================
 
 

@@ -4,3 +4,13 @@
 *.xgr
 
 *.out
+
+*.nam
+
+*.tr
+
+*.topo
+
+*.tmp
+
+*.graph

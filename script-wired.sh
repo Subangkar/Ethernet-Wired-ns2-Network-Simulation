@@ -1,35 +1,55 @@
 
 #INPUT: output file AND number of iterations
 
-outputDirectory="output_wired/"
+outputDirectory="out/"
 rm -rf $outputDirectory
 rm -rf Output/
 mkdir -p $outputDirectory
 
-tclFile="tcl-wired.tcl"
 
 
 iteration_float=1.0;
 under="_";
 
-outFile="$outputDirectory""OUT"
-tempFile="$outputDirectory""TEMPFILE"
-graphData="$outputDirectory""GRAPH"
+
+###################   FILES   ###################
+outFileName="$outputDirectory""OUT"
+outFileExt=".out"
+outFile="$outputDirectory""OUT.out"
+tempFile="$outputDirectory""TEMPFILE.tmp"
+graphData="$outputDirectory""GRAPH.graph"
+graphFileName="out/GRAPH.graph"
+tclFile="tcl-wired.tcl"
+awkFile="awk-wired.awk"
 traceFile="TRACE.tr"
 
 
-nNodesInit=100;#20
+###################   Parameters starting/default values   ###################
+nNodesInit=20
 nFlowsInit=10
 pcktRateInit=100
-speedInit=5
+txRangeInit=40;#40
+# 40x40 grid
 
-nNodes=$nNodesInit
-nFlows=$nFlowsInit
-pcktRate=$pcktRateInit
-speed=$speedInit
+
+defFactor=2
+
+(( nNodesDef =  $defFactor * $nNodesInit ))
+(( nFlowsDef =  $defFactor * $nFlowsInit ))
+(( pcktRateDef = $defFactor * $pcktRateInit ))
+(( txRangeDef = $defFactor * $txRangeInit ))
+
+nNodes=$nNodesDef
+nFlows=$nFlowsDef
+pcktRate=$pcktRateDef
+txRange=$txRangeDef
 
 iteration=$(printf %.0f $iteration_float);
 
+
+echo '================='
+echo '===== Wired ======'
+echo '================='
 
 
 echo 'Which parameter do you want to vary?'
@@ -41,11 +61,23 @@ param=1
 
 echo 'Please enter the # of iteration'
 # read nIter
-nIter=1
+nDataSet=5
+
+
+
+
+if [ "$param" == "1" ]; then
+	nNodes=$nNodesInit
+elif [ "$param" == "2" ]; then
+	nFlows=$nFlowsInit
+elif [ "$param" == "3" ]; then
+	pcktRate=$pcktRateInit
+fi
+
 
 round=1
 
-while [ $round -le $nIter ]
+while [ $round -le $nDataSet ]
 do
 	###############################START A ROUND
 
@@ -65,7 +97,7 @@ do
 		ns $tclFile $nNodes $nFlows $pcktRate
 		echo "SIMULATION COMPLETE. BUILDING STAT..."
 
-		awk -f awk-wired.awk $traceFile > $tempFile
+		awk -f $awkFile $traceFile > $tempFile
 
 
 		# ======================================================================
@@ -114,7 +146,7 @@ do
 
 	########## OUTPUT FILE GENERATION
 	
-	output_file="$outFile$under$round"
+	output_file="$outFileName$under$round$outFileExt"
 	echo "" > $output_file # clearing the output file
 
 			
@@ -208,7 +240,8 @@ arr2[5]="Packet Drop Ratio ( % )"
 i=5
 while [ $i -ge 2 ]
 do
-	# gnuplot -persist -e "set title 'Wired : ${arr[i]} vs $param'; set xlabel '$param'; set ylabel '${arr2[i]}'; plot 'output_wired/GRAPH' using 1:$i with lines"
+	    # gnuplot -persist -e "set title 'Wired : ${arr[i]} vs $param'; set xlabel '$param'; set ylabel '${arr2[i]}'; plot 'output_wired/GRAPH' using 1:$i with lines"
+	gnuplot -persist -e "set title 'Wired : ${arr[i]} vs $param'; set xlabel '$param'; set ylabel '${arr2[i]}'; plot '$graphFileName' using 1:$i with lines"
 	i=$(($i-1))
 done
 
