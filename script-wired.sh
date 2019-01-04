@@ -28,16 +28,13 @@ traceFile="TRACE.tr"
 nNodesInit=20
 nFlowsInit=10
 pcktRateInit=100
-txRangeInit=40;#40
-# 40x40 grid
 
 
-defFactor=2
+defFactor=1
 
 (( nNodesDef =  $defFactor * $nNodesInit ))
 (( nFlowsDef =  $defFactor * $nFlowsInit ))
 (( pcktRateDef = $defFactor * $pcktRateInit ))
-(( txRangeDef = $defFactor * $txRangeInit ))
 
 nNodes=$nNodesDef
 nFlows=$nFlowsDef
@@ -81,9 +78,9 @@ while [ $round -le $nDataSet ]
 do
 	###############################START A ROUND
 
-	echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "#####################################################################"
 	echo "                         ROUND : $round                              "
-	echo "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+	echo "#####################################################################"
 
 	l=0;thr=0.0;del=0.0;s_packet=0.0;r_packet=0.0;d_packet=0.0;del_ratio=0.0;
 	dr_ratio=0.0;time=0.0;total_retransmit=0.0;rTotalDelay=0.0; 
@@ -171,28 +168,7 @@ do
 	echo "Total Delay: 					$rTotalDelay " >> $output_file
 	# ==========================================================================
 ##############################
-	echo "Initial setup: " 				
-	echo "# of Nodes:                   $nNodes " 
-	echo "# of flows:                   $nFlows " 
-	echo "Packet size:                  $pcktRate " 
-
-
-	echo "" 
-	echo "" 
-	echo "" 
-
-
-	echo "Throughput:                   $thr " 
-	echo "AverageDelay:                 $del " 
-	echo "Sent Packets:                 $s_packet " 
-	echo "Received Packets:             $r_packet " 
-	echo "Dropped Packets:              $d_packet " 
-	echo "PacketDeliveryRatio:          $del_ratio " 
-	echo "PacketDropRatio:              $dr_ratio " 
-	echo "Total time:                   $time " 
-	echo "Total Delay: 					$rTotalDelay "
-
-
+	cat $output_file
 ############################
 	round=$(($round+1))
 #
@@ -223,22 +199,23 @@ elif [ "$param" == "3" ]; then
 	param="Packet Rate"
 fi
 
+startParam=2
 arr[0]=""
-arr[1]=""
-arr[2]="Throughput"
-arr[3]="Average Delay"
-arr[4]="Packet Delivery Ratio"
-arr[5]="Packet Drop Ratio"
+# arr[1]=""
+arr[$(( $startParam + 0 ))]="Throughput"
+arr[$(( $startParam + 1 ))]="Average Delay"
+arr[$(( $startParam + 2 ))]="Packet Delivery Ratio"
+arr[$(( $startParam + 3 ))]="Packet Drop Ratio"
 
 arr2[0]=""
-arr2[1]=""
-arr2[2]="Throughput ( bit/second )"
-arr2[3]="Average Delay ( second )"
-arr2[4]="Packet Delivery Ratio ( % )"
-arr2[5]="Packet Drop Ratio ( % )"
+# arr2[1]=""
+arr2[$(( $startParam + 0 ))]="Throughput ( bit/second )"
+arr2[$(( $startParam + 1 ))]="Average Delay ( second )"
+arr2[$(( $startParam + 2 ))]="Packet Delivery Ratio ( % )"
+arr2[$(( $startParam + 3 ))]="Packet Drop Ratio ( % )"
 
-i=5
-while [ $i -ge 2 ]
+i=$(( $startParam + 3 ))
+while [ $i -ge $startParam ]
 do
 	    # gnuplot -persist -e "set title 'Wired : ${arr[i]} vs $param'; set xlabel '$param'; set ylabel '${arr2[i]}'; plot 'output_wired/GRAPH' using 1:$i with lines"
 	gnuplot -persist -e "set title 'Wired : ${arr[i]} vs $param'; set xlabel '$param'; set ylabel '${arr2[i]}'; plot '$graphFileName' using 1:$i with lines"

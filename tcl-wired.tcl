@@ -5,7 +5,6 @@
 set num_node           [lindex $argv 0]
 set num_flow			[lindex $argv 1]
 set cbr_pckt_rate     [lindex $argv 2]
-set Tx_range 	    	500;#[lindex $argv 3]
 set cbr_interval		[expr 1.0/$cbr_pckt_rate]
 # http://prog3.com/sbdm/blog/ysynhtt/article/details/37922773
 
@@ -17,8 +16,6 @@ if {$num_node >= 50} {
 	# puts "$num_col"
 }
 set num_row [expr $num_node/$num_col]
-
-# puts "Simulating With: #Nodes=$num_node #Flow=$num_flow PKT_rate=$cbr_pckt_rate #TX_Range=$Tx_range"
 # ==============================================================================
 
 
@@ -28,9 +25,13 @@ set num_row [expr $num_node/$num_col]
 set cbr_type CBR
 set cbr_size            16 ;	#[lindex $argv 2]; #4,8,16,32,64
 set cbr_rate            0.256Mb;#11.0Mb
+
+set qLimit 10
+
 set time_duration    15 ;	#[lindex $argv 5] ;#50
 set start_time          1
 set extra_time          5
+
 set flow_start_gap   0.1
 set parallel_start_gap 0.1
 set cross_start_gap 0.0
@@ -142,10 +143,13 @@ for {set i 0} {$i < $num_node} {incr i} {
 
     if {$nodeColm != [expr $num_col-1]} {
         $ns_ duplex-link $node_($i) $node_($rightNode) 2Mb 10ms DropTail
+		$ns_ queue-limit $node_($i) $node_($rightNode) $qLimit
+
     }
 
     if {$downNode < [expr $num_node-1]} {
         $ns_ duplex-link $node_($i) $node_($downNode) 2Mb 10ms DropTail
+		$ns_ queue-limit $node_($i) $node_($downNode) $qLimit
     }
 }
 
