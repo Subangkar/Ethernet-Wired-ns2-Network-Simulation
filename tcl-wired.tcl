@@ -58,11 +58,9 @@ set trace_file_name		TRACE.tr
 set nam_file_name		NAM.nam
 set topo_file_name		TOPO.topo
 set directory			""
+set queue_trace_file_name qm.out
+# http://www.mathcs.emory.edu/~cheung/Courses/558-old/Syllabus/90-NS/trace.html#QMon
 # ==============================================================================
-
-
-
-
 
 
 
@@ -101,6 +99,7 @@ $ns_ trace-all $tracefd
 set namtrace    [open $directory$nam_file_name w]
 $ns_ namtrace-all $namtrace 
 
+set queue_trace_file [open $queue_trace_file_name w]
 
 # create a topology object that keeps track of movements...
 # ...of mobilenodes within the topological boundary.
@@ -134,30 +133,31 @@ puts "Creating Edges between the nodes..."
 
 
 for {set i 0} {$i < $num_node} {incr i} { 
-
     set nodeColm [expr $i % $num_col]
 
     set rightNode [expr $i + 1]
     set downNode [expr $i + $num_col]
 
-
     if {$nodeColm != [expr $num_col-1]} {
         $ns_ duplex-link $node_($i) $node_($rightNode) 2Mb 10ms DropTail
 		$ns_ queue-limit $node_($i) $node_($rightNode) $qLimit
 
+		set qmon [$ns_ monitor-queue $node_($i) $node_($rightNode) $queue_trace_file 0.1]
+		[$ns_ link $node_($i) $node_($rightNode)] queue-sample-timeout
     }
 
     if {$downNode < [expr $num_node-1]} {
         $ns_ duplex-link $node_($i) $node_($downNode) 2Mb 10ms DropTail
 		$ns_ queue-limit $node_($i) $node_($downNode) $qLimit
+
+		set qmon [$ns_ monitor-queue $node_($i) $node_($downNode) $queue_trace_file 0.1]
+		[$ns_ link $node_($i) $node_($downNode)] queue-sample-timeout
     }
 }
 
 
-
 puts "node creation complete"
 # ==============================================================================
-
 
 
 
