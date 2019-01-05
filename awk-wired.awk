@@ -43,7 +43,8 @@ BEGIN {
 	source = int(source);
 	dest = int(dest);
 	
-	if(pcktType=="cbr"){
+	# if(pcktType=="cbr"){
+	if(pcktType=="tcp"){
 
 		if(rTime < rStartTime) rStartTime=rTime;
 		if(rTime > rEndTime) rEndTime=rTime;

@@ -47,8 +47,10 @@ puts "Simulating With: #Nodes=$num_node #Flow=$num_flow PKT_rate=$cbr_pckt_rate 
 
 
 
-set source_type			Agent/UDP
-set sink_type			Agent/Null
+# set source_type			Agent/UDP
+# set sink_type			Agent/Null
+set source_type			Agent/TCP
+set sink_type			Agent/TCPSink
 
 
 # ==============================================================================
@@ -113,7 +115,7 @@ set topo	[new Topography]
 $ns_ rtproto DV 
 
 # create the object God
-create-god $val(nn)
+# create-god $val(nn)
 
 # ==============================================================================
 
@@ -169,7 +171,9 @@ puts "node creation complete"
 for {set i 0} {$i < $num_flow} {incr i} {
 	set udp_($i) [new $source_type]
 	set null_($i) [new $sink_type]
+	$udp_($i) set class_ $i
 	$udp_($i) set fid_ $i
+	$udp_($i) set windowOption_ 15
 	if { [expr $i%2] == 0} {
 		$ns_ color $i Red
 	} else {
@@ -194,6 +198,10 @@ for {set i 0} {$i < $num_random_flow} {incr i} {
 	$ns_ attach-agent $node_($source_number) $udp_($k)
   	$ns_ attach-agent $node_($sink_number) $null_($k)
 
+	set ftp [new Application/FTP]
+	$ftp attach-agent $udp_($k)
+	$ns_ at $start_time "$ftp start"
+
 	puts -nonewline $topo_file "RANDOM:  Src: $source_number Dest: $sink_number\n"
 	incr k
 }
@@ -203,6 +211,7 @@ set k [expr $num_parallel_flow+$num_cross_flow]
 # Creating packet generator (CBR) for source node
 for {set i 0} {$i < $num_random_flow } {incr i} {
 	set cbr_($i) [create_CBR_App]
+	# set cbr_($i) [new Application/FTP]
 	$cbr_($i) attach-agent $udp_($k)
 	incr k
 }
