@@ -5,7 +5,7 @@ BEGIN {
 	nSentPackets = 0.0 ;		
 	nReceivedPackets = 0.0 ;
 	rTotalDelay = 0.0 ;
-	max_pckt = 10000;
+	max_pckt = 100000000;
 	
 	idHighestPacket = 0;
 	idLowestPacket = 100000;
@@ -16,7 +16,11 @@ BEGIN {
 	nDropPackets = 0.0;
 
 	# header = 20;	
-	header = 0;	
+	header = 40;# for tcp	
+
+	# for (i=0; i<max_pckt; i++) {
+	# 	rReceivedTime[i] = 0.0;
+	# }
 
 }
 
@@ -53,7 +57,7 @@ BEGIN {
 		{
 			nSentPackets += 1 ;	rSentTime[ idPacket ] = rTime ;
 		}
-		if(strEvent == "r" && to == dest)
+		if(strEvent == "r" && to == dest && rReceivedTime[ idPacket ] == 0.0)
 		{
 			nReceivedPackets += 1 ;	
 			nReceivedBytes += (pcktSize-header);

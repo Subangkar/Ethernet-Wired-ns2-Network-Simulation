@@ -174,6 +174,7 @@ for {set i 0} {$i < $num_flow} {incr i} {
 	$udp_($i) set class_ $i
 	$udp_($i) set fid_ $i
 	$udp_($i) set windowOption_ 15
+	$udp_($i) set packetSize_ 960
 	if { [expr $i%2] == 0} {
 		$ns_ color $i Red
 	} else {
