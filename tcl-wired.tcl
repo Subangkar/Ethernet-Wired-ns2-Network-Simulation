@@ -173,8 +173,13 @@ for {set i 0} {$i < $num_flow} {incr i} {
 	set null_($i) [new $sink_type]
 	$udp_($i) set class_ $i
 	$udp_($i) set fid_ $i
-	$udp_($i) set windowOption_ 15
+	# $udp_($i) set windowOption_ 15
 	$udp_($i) set packetSize_ 960
+	# $udp_($i) attach $tracefd	
+	# $udp_($i) tracevar cwnd_
+	# $udp_($i) tracevar ssthresh_
+	# $udp_($i) tracevar ack_	
+
 	if { [expr $i%2] == 0} {
 		$ns_ color $i Red
 	} else {
@@ -192,6 +197,8 @@ set k [expr $num_parallel_flow+$num_cross_flow]
 for {set i 0} {$i < $num_random_flow} {incr i} {
 	set source_number [expr int($num_node*rand())]
 	set sink_number [expr int($num_node*rand())]
+	# set source_number 0
+	# set sink_number [expr int($num_node-1)]
 	while {$sink_number==$source_number} {
 		set sink_number [expr int($num_node*rand())]
 	}
@@ -211,9 +218,9 @@ for {set i 0} {$i < $num_random_flow} {incr i} {
 set k [expr $num_parallel_flow+$num_cross_flow]
 # Creating packet generator (CBR) for source node
 for {set i 0} {$i < $num_random_flow } {incr i} {
-	set cbr_($i) [create_CBR_App]
+	set cbr_($k) [create_CBR_App]
 	# set cbr_($i) [new Application/FTP]
-	$cbr_($i) attach-agent $udp_($k)
+	$cbr_($k) attach-agent $udp_($k)
 	incr k
 }
 
@@ -250,7 +257,7 @@ for {set i 0} {$i < $num_node } {incr i} {
 }
 
 $ns_ at [expr $start_time+$time_duration +$extra_time] "finish"
-$ns_ at [expr $start_time+$time_duration +$extra_time] "$ns_ nam-end-wireless [$ns_ now]; puts \"NS Exiting...\"; $ns_ halt"
+$ns_ at [expr $start_time+$time_duration +$extra_time] "$ns_ nam-end [$ns_ now]; puts \"NS Exiting...\"; $ns_ halt"
 
 
 proc finish {} {
@@ -259,7 +266,7 @@ proc finish {} {
     $ns_ flush-trace
     close $tracefd
 	close $topo_file
-    # close $namtrace
+    close $namtrace
     # exec nam $nam_file_name &
     exit 0
 }

@@ -84,7 +84,7 @@ END {
 		rAverageDelay = rTotalDelay / nReceivedPackets ;
 	}
 	# printf( "%15.5f\n%10.2f\n%10.2f\n%10.2f\n", rThroughput, rAverageDelay,rPacketDeliveryRatio, rPacketDropRatio) ;
-	printf( "%15.2f\n%15.5f\n%15.2f\n%15.2f\n%15.2f\n%10.2f\n%10.2f\n%10.5f\n", rThroughput, rAverageDelay, nSentPackets, nReceivedPackets, nDropPackets, rPacketDeliveryRatio, rPacketDropRatio,rTime,rTotalDelay) ;
+	printf( "%15.2f\n%15.5f\n%15.2f\n%15.2f\n%15.2f\n%10.2f\n%10.2f\n%10.5f\n%10.5f\n", rThroughput, rAverageDelay, nSentPackets, nReceivedPackets, nDropPackets, rPacketDeliveryRatio, rPacketDropRatio,rTime,rTotalDelay) ;
 
 }
 

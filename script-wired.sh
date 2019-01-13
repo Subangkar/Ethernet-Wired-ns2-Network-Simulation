@@ -7,8 +7,9 @@ rm -rf Output/
 mkdir -p $outputDirectory
 
 
+param=3
 
-iteration_float=1.0;
+iteration_float=3.0;
 under="_";
 
 
@@ -49,14 +50,14 @@ echo '===== Wired ======'
 echo '================='
 
 
-echo 'Which parameter do you want to vary?'
-echo '1. # of Nodes'
-echo '2. # of flows'
-echo '3. Packet rate'
+# echo 'Which parameter do you want to vary?'
+# echo '1. # of Nodes'
+# echo '2. # of flows'
+# echo '3. Packet rate'
 # read param
-param=1
+# param=1
 
-echo 'Please enter the # of iteration'
+# echo 'Please enter the # of iteration'
 # read nIter
 nDataSet=5
 
@@ -65,10 +66,13 @@ nDataSet=5
 
 if [ "$param" == "1" ]; then
 	nNodes=$nNodesInit
+	echo "Varying #Nodes"
 elif [ "$param" == "2" ]; then
 	nFlows=$nFlowsInit
+	echo "Varying #Flows"
 elif [ "$param" == "3" ]; then
 	pcktRate=$pcktRateInit
+	echo "Varying #PktRate"
 fi
 
 
@@ -100,6 +104,7 @@ do
 		# ======================================================================
 		# UPDATING THE VALUES IN EACH ITERATION
 		# ======================================================================
+		l=0
 		while read val
 		do
 
@@ -137,7 +142,6 @@ do
 		done < $tempFile
 
 		i=$(($i+1))
-		l=0 
 	done
 
 
@@ -217,8 +221,7 @@ arr2[$(( $startParam + 3 ))]="Packet Drop Ratio ( % )"
 i=$(( $startParam + 3 ))
 while [ $i -ge $startParam ]
 do
-	    # gnuplot -persist -e "set title 'Wired : ${arr[i]} vs $param'; set xlabel '$param'; set ylabel '${arr2[i]}'; plot 'output_wired/GRAPH' using 1:$i with lines"
-	gnuplot -persist -e "set title 'Wired : ${arr[i]} vs $param'; set xlabel '$param'; set ylabel '${arr2[i]}'; plot '$graphFileName' using 1:$i with lines"
+	gnuplot -persist -e "set terminal png size 700,500; set output '$outputDirectory${arr[$i]}VS$param.png'; set title 'Wired : ${arr[$i]} vs $param'; set xlabel '$param'; set ylabel '${arr2[$i]}'; plot '$graphFileName' using 1:$i with lines"
 	i=$(($i-1))
 done
 
