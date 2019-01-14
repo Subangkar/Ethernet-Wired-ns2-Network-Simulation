@@ -206,9 +206,9 @@ for {set i 0} {$i < $num_random_flow} {incr i} {
 	$ns_ attach-agent $node_($source_number) $udp_($k)
   	$ns_ attach-agent $node_($sink_number) $null_($k)
 
-	set ftp [new Application/FTP]
-	$ftp attach-agent $udp_($k)
-	$ns_ at $start_time "$ftp start"
+	# set ftp [new Application/FTP]
+	# $ftp attach-agent $udp_($k)
+	# $ns_ at [expr $start_time+0.5] "$ftp start"
 
 	puts -nonewline $topo_file "RANDOM:  Src: $source_number Dest: $sink_number\n"
 	incr k
